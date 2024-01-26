@@ -3,8 +3,9 @@ const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
 
-app.use(express.json())
+app.use(cors())
 app.use(express.static('dist'))
+app.use(express.json())
 
 
 
@@ -107,3 +108,6 @@ const port = process.env.PORT || 3001
 app.listen(port, () => {
   console.log(`${port}`)
 })
+
+
+//BACKTRACK
