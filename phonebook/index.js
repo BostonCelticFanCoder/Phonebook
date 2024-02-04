@@ -1,7 +1,9 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
 
 app.use(cors())
 app.use(express.static('dist'))
@@ -43,25 +45,30 @@ morgan.token('body', (req, res) => {
 });
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms :body"))
 
-app.get('/api/persons', (request, response) => {
-    response.json(phonebook)
+app.get('/api/persons', (request, response, next) => {
+    Person.find({}).then(person => {
+      response.json(person)
+    })
+    .catch(error => next(error))
 })
 
 app.get('/info', (request, response) => {
-    response.send(`
-    <div>
-        <p>Phonebook has info for ${phonebook.length} people</p>
-        <p>${new Intl.DateTimeFormat('en-US', {
-            dateStyle: 'full',
-            timeStyle: 'long'
-        }).format()}</p>
-    </div>
-    `)
+    let available = Person.countDocuments().then(count => {
+      response.send(`
+      <div>
+          <p>Phonebook has info for ${count} people</p>
+          <p>${new Intl.DateTimeFormat('en-US', {
+              dateStyle: 'full',
+              timeStyle: 'long'
+          }).format()}</p>
+      </div>
+      `)
+    })
 })
 
 
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons/', (request, response, next) => {
     const randomId = Math.floor(Math.random(1) * 10000) + 1
     const body = request.body
     const repitition = phonebook.filter(person => person.name === body.name)
@@ -75,39 +82,72 @@ app.post('/api/persons', (request, response) => {
         error: "name must be unique"
       })
     }
-    const contact = {
+    const contact = new Person({
       name: body.name,
       number: body.number,
       id: randomId
-    }
+    })
   
-    phonebook = phonebook.concat(contact)
-    return response.json(contact)
+    contact.save().then(savedContact => {
+      response.json(savedContact)
+    })
+    .catch(error => next(error))
   
 })
 
+app.put('/api/persons/:id', (request, response, next) => {
+  Person.updateOne({name: request.body.name}, {$set: { number: request.body.number }})
+  .then(after => {
+    Person.find({}).then(person => {
+      response.json(person)
+    })
+  })
+  .catch(error => next(error))
+})
 
 
-app.get('/api/persons/:id', (request, response) => {
-    let person = phonebook.filter(pers => pers.id === Number(request.params.id))
-    person.length != 0 ? response.json(person) : response.status(400).end()
+app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id).then(contact => {
+      response.json(contact)
+    })
+    .catch(error => next(error))
 })
 
 
 
-app.delete('/api/persons/:id', (request, response) => {
-    let id = Number(request.params.id)
-    phonebook = phonebook.filter(person => person.id !== id)
-    response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndDelete(request.params.id)
+      .then(result => {
+        Person.find({}).then(person => {
+          response.json(person)
+        })
+        response.status(204).end
+      })
+      .catch(error => next(error))
 })
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({error: error.message})
+  }
+
+  next(error)
+}
 
 
 
-const port = process.env.PORT || 3001
+
+
+const port = process.env.PORT
 app.listen(port, () => {
   console.log(`${port}`)
 })
 
+
+app.use(errorHandler)
 
 //BACKTRACK

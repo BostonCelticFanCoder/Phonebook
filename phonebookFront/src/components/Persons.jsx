@@ -12,6 +12,12 @@ const Persons = ({persons, setPersons, setBackup, setError}) => {
         .then(person => {
           setPersons(person)
           setBackup(person)
+          setError(
+            `Deleted entry`
+          )
+          setTimeout(() => {
+            setError(null)
+          }, 4500)
         })
       })
     }

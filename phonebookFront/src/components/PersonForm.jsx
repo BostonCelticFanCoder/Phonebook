@@ -56,20 +56,23 @@ const PersonForm = ({newName, setNewName, newNumber, setNewNumber, setBackup, pe
             "id": persons[persons.length - 1].id + 1,
             "number": newNumber
           }
-          setPersons(persons.concat(newPerson));
-          setBackup(persons.concat(newPerson));
-          setNewName('');
-          setNewNumber('');
+
           service
             .setData(newPerson)
-            .then(newNote => {
-              setPersons(persons.concat(newNote));
-              setBackup(persons.concat(newNote));
+            .then(person => {
+              setPersons(persons.concat(person));
+              setBackup(persons.concat(person));
               setNewName('');
               setNewNumber('');
               setError(
                 `Added ${newName}`
               )
+              setTimeout(() => {
+                setError(null)
+              }, 4500)
+            })
+            .catch(error => {
+              setError(error.response.data.error)
               setTimeout(() => {
                 setError(null)
               }, 4500)
