@@ -1,4 +1,4 @@
-const Error = ({message}) => {
+const Error = ({ message }) => {
     const errorStyling = {
       color: 'red',
       backgroundColor: 'lightgrey',

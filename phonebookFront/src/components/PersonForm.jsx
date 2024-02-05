@@ -1,7 +1,7 @@
 import service from '../services/persons'
 
 
-const PersonForm = ({newName, setNewName, newNumber, setNewNumber, setBackup, persons, setPersons, error, setError}) => {
+const PersonForm = ({newName, setNewName, newNumber, setNewNumber, setBackup, persons, setPersons, setError}) => {
     const addName = (event) => {
         event.preventDefault();
         let repeatNum = persons.filter(person => person.number === newNumber);
@@ -15,7 +15,7 @@ const PersonForm = ({newName, setNewName, newNumber, setNewNumber, setBackup, pe
             }
             service
               .replaceData(id, updatedPerson)
-              .then(response => {
+              .then(() => {
                 service
                 .getData()
                 .then(person => {

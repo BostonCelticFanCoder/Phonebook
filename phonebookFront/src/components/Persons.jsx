@@ -6,7 +6,7 @@ const Persons = ({persons, setPersons, setBackup, setError}) => {
     if (window.confirm("Do you really want to delete this entry from the phonebook?")) {
       service
       .deleteData(event.target.id)
-      .then(response => {
+      .then(() => {
         service
         .getData()
         .then(person => {
